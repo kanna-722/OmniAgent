@@ -1,5 +1,6 @@
 <p align="center">
-  <h1 align="center">OmniAgent</h1>
+  <h1 align="center">OmniAgent <img src="./imgs/logo.png" width="32"
+  
 </p>
 
 <p align="center">
