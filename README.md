@@ -12,8 +12,9 @@
 作为AIHub的子项目，OmniAgent是一个基于大语言模型的现代化智能对话系统，支持多Agent协作、知识库检索、工具调用、MCP服务器集成、实时对话等功能。
 
 ## 项目介绍
-
-<img src="./imgs/omniagent.png"/>
+<div align="center">
+<img src="./imgs/omniagent.png" width="600"/>
+</div>
 
 OminiAgent包含以下核心能力：
 
