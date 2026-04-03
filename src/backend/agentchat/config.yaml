@@ -19,17 +19,17 @@ redis:
 multi_models:
   # 对话模型配置
   conversation_model:
-    api_key: "sk-c18819c717bb4a738b72b276d869b849"
+    api_key: "sk-c18819c717bb4a738b72b276d******"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
     model_name: "qwen3.5-plus"
   # 工具调用/Function Call 模型配置
   tool_call_model:
-    api_key: "sk-c18819c717bb4a738b72b276d869b849"
+    api_key: "sk-c18819c717bb4a738b72b276d******"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
     model_name: "qwen3.5-plus"
   # 复杂推理模型配置
   reasoning_model:
-    api_key: "sk-c18819c717bb4a738b72b276d869b849"
+    api_key: "sk-c18819c717bb4a738b72b276******"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
     model_name: "qwen3.5-plus"
   # 文生图模型配置
@@ -45,13 +45,13 @@ multi_models:
 
   # Embedding 模型配置 (用于向量化)
   embedding:
-    api_key: "sk-c18819c717bb4a738b72b276d869b849"
+    api_key: "sk-c18819c717bb4a738b7******"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
     model_name: "text-embedding-v3"
 
   # Rerank 模型配置 (用于重排序召回结果)
   rerank:
-    api_key: "sk-c18819c717bb4a738b72b276d869b849"
+    api_key: "sk-c18819c717bb4a738b72b******"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
     model_name: "qwen-vl-rerank"
 
@@ -60,7 +60,7 @@ multi_models:
 tools:
   # 高德地图天气 API 配置
   weather:
-    api_key: "235e34604c44c6b70d7b757bc7e9a45f"
+    api_key: "235e34604c44c6b70d7******"
     endpoint: "https://restapi.amap.com/v3/weather/weatherInfo?parameters"
   # Tavily 联网搜索 API 配置 (注意配额限制)
   tavily:

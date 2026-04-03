@@ -9,7 +9,7 @@ load_dotenv()
 
 mcp = FastMCP("MCP-Weather")
 
-weather_api_key  = "235e34604c44c6b70d7b757bc7e9a45f"
+weather_api_key  = "235e34604c44c6b70d7b7*********"
 weather_endpoint = "https://restapi.amap.com/v3/weather/weatherInfo?parameters"
 
 # weather_api_key = os.getenv("weather_api_key")
