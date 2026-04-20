@@ -19,19 +19,19 @@ redis:
 multi_models:
   # 对话模型配置
   conversation_model:
-    api_key: "sk-c18819c717bb4a738b72b276d******"
+    api_key: "sk-c18819c717bb4a738b72b276d869b849"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: "qwen3.5-plus"
+    model_name: "qwen3.5-flash"
   # 工具调用/Function Call 模型配置
   tool_call_model:
-    api_key: "sk-c18819c717bb4a738b72b276d******"
+    api_key: "sk-c18819c717bb4a738b72b276d869b849"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: "qwen3.5-plus"
+    model_name: "qwen3.5-flash"
   # 复杂推理模型配置
   reasoning_model:
-    api_key: "sk-c18819c717bb4a738b72b276******"
+    api_key: "sk-c18819c717bb4a738b72b276d869b849"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: "qwen3.5-plus"
+    model_name: "qwen3.5-flash"
   # 文生图模型配置
   text2image:
     api_key: "sk-fc40dd0604f04142a******"
@@ -45,15 +45,15 @@ multi_models:
 
   # Embedding 模型配置 (用于向量化)
   embedding:
-    api_key: "sk-c18819c717bb4a738b7******"
+    api_key: "sk-c18819c717bb4a738b72b276d869b849"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
     model_name: "text-embedding-v3"
 
   # Rerank 模型配置 (用于重排序召回结果)
   rerank:
-    api_key: "sk-c18819c717bb4a738b72b******"
+    api_key: "sk-c18819c717bb4a738b72b276d869b849"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: "qwen-vl-rerank"
+    model_name: "qwen3-rerank"
 
 
 # 外部工具 (Tool) 配置
