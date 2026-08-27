@@ -2,9 +2,13 @@ import yaml
 from typing import Literal, Optional
 from loguru import logger
 from types import SimpleNamespace
-from pydantic.v1 import BaseSettings, Field
+from pydantic.v1 import BaseModel, BaseSettings, Field, conint
 
 from agentchat.schema.common import MultiModels, ModelConfig, Tools, Rag, StorageConfig
+
+
+class AgentExecutionConfig(BaseModel):
+    recursion_limit: conint(strict=True, gt=0) = 25
 
 
 class Settings(BaseSettings):
@@ -20,6 +24,7 @@ class Settings(BaseSettings):
     tools: Optional[Tools] = None
     storage: Optional[StorageConfig] = None
     multi_models: Optional[MultiModels] = None
+    agent_execution: AgentExecutionConfig = Field(default_factory=AgentExecutionConfig)
 
 
 app_settings = Settings()
@@ -47,6 +52,9 @@ async def initialize_app_settings(file_path: str = None):
 
             if "storage" in data:
                 data["storage"] = StorageConfig(**data["storage"])
+
+            if "agent_execution" in data:
+                data["agent_execution"] = AgentExecutionConfig(**data["agent_execution"])
 
             for key, value in data.items():
                 setattr(app_settings, key, value)

@@ -6,6 +6,7 @@ from pydantic import BaseModel
 from typing import List, Dict, Any, AsyncGenerator, Callable, NotRequired
 from langgraph.runtime import Runtime
 from langgraph.types import Command
+from langgraph.errors import GraphRecursionError
 from langchain_core.tools import BaseTool, tool, StructuredTool
 from langchain.tools.tool_node import ToolCallRequest
 from langchain.agents import create_agent, AgentState
@@ -15,6 +16,7 @@ from langchain.agents.middleware import LLMToolSelectorMiddleware, ModelRequest,
 
 from agentchat.api.services.agent_skill import AgentSkillService
 from agentchat.core.agents.skill_agent import SkillAgent
+from agentchat.core.agents.execution_summary_skill import ExecutionSummarySkill
 from agentchat.core.callbacks import usage_metadata_callback
 from agentchat.database import AgentSkill
 from agentchat.tools import AgentToolsWithName
@@ -25,6 +27,7 @@ from agentchat.services.rag.handler import RagHandler
 from agentchat.core.agents.mcp_agent import MCPAgent, MCPConfig
 from agentchat.api.services.mcp_server import MCPService
 from agentchat.tools.openapi_tool.adapter import OpenAPIToolAdapter
+from agentchat.settings import app_settings
 
 
 class StreamAgentState(AgentState):
@@ -367,14 +370,20 @@ class GeneralAgent:
     async def astream(self, messages: List[BaseMessage]) -> AsyncGenerator[Dict[str, Any], None]:
         """流式调用主方法"""
         response_content = ""
+        latest_messages = copy.deepcopy(messages)
         try:
             async for token, metadata in self.react_agent.astream(
                     input={"messages": copy.deepcopy(messages), "model_call_count": 0, "user_id": self.agent_config.user_id},
-                    config={"callbacks": [usage_metadata_callback]},
-                    stream_mode=["messages", "custom"],
+                    config={
+                        "callbacks": [usage_metadata_callback],
+                        "recursion_limit": app_settings.agent_execution.recursion_limit,
+                    },
+                    stream_mode=["messages", "custom", "values"],
             ):
                 if token == "custom":
                     yield self.wrap_event(metadata)
+                elif token == "values":
+                    latest_messages = metadata.get("messages", latest_messages)
                 elif isinstance(metadata[0], AIMessageChunk) and metadata[0].content:
                     response_content += metadata[0].content
                     yield {
@@ -385,6 +394,52 @@ class GeneralAgent:
                             "accumulated": response_content
                         }
                     }
+
+        except GraphRecursionError:
+            logger.warning(
+                "LangGraph recursion limit reached: {}",
+                app_settings.agent_execution.recursion_limit,
+            )
+            yield self.wrap_event({
+                "status": "START",
+                "title": "整理当前执行结果",
+                "message": "Agent 已达到执行步数上限，正在整理已完成和未完成的工作。",
+            })
+
+            try:
+                summary_skill = ExecutionSummarySkill(self.conversation_model)
+                summary = await summary_skill.ainvoke(
+                    original_messages=messages,
+                    execution_messages=latest_messages,
+                    callbacks=[usage_metadata_callback],
+                )
+            except Exception as summary_err:
+                logger.error(f"Execution summary error: {summary_err}")
+                summary = (
+                    "## 已完成工作\n"
+                    "Agent 已执行了部分任务步骤。\n\n"
+                    "## 已获得结果\n"
+                    "当前无法可靠整理已执行步骤的详细结果。\n\n"
+                    "## 未完成事项\n"
+                    "本次任务因达到 LangGraph 递归上限而停止，可能仍有步骤未完成。\n\n"
+                    "## 建议下一步\n"
+                    "请将任务拆分为更小的步骤后继续执行。"
+                )
+
+            response_content += summary
+            yield {
+                "type": "response_chunk",
+                "timestamp": time.time(),
+                "data": {
+                    "chunk": summary,
+                    "accumulated": response_content,
+                },
+            }
+            yield self.wrap_event({
+                "status": "END",
+                "title": "整理当前执行结果",
+                "message": "已整理本次执行结果。",
+            })
 
         # 针对模型回复进行兜底操作，错误类型包括：敏感词，模型问题
         except Exception as err:
