@@ -1,0 +1,35 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: omniagent-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: zhang123
+      MYSQL_DATABASE: agentchat
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password
+
+  redis:
+    image: redis:7
+    container_name: omniagent-redis
+    ports:
+      - "6379:6379"
+
+  minio:
+    image: minio/minio
+    container_name: omniagent-minio
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    command: server /data --console-address ":9001"
+
+volumes:
+  mysql_data:
+  minio_data:
