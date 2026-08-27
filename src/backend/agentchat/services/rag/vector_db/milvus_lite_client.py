@@ -1,3 +1,5 @@
+import asyncio
+
 from loguru import logger
 from agentchat.settings import app_settings
 from agentchat.services.rag.embedding import get_embedding
@@ -142,12 +144,13 @@ class MilvusLiteClient:
             }
 
             # 执行搜索
-            results = collection.search(
+            results = await asyncio.to_thread(
+                collection.search,
                 data=[query_embedding],
                 anns_field="embedding",
                 param=search_params,
                 limit=top_k,
-                output_fields=["content", "chunk_id", "summary", "file_id", "file_name", "knowledge_id", "update_time"]
+                output_fields=["content", "chunk_id", "summary", "file_id", "file_name", "knowledge_id", "update_time"],
             )
 
             # 格式化结果

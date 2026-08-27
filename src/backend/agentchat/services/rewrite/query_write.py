@@ -13,13 +13,18 @@ class QueryRewrite:
 
     async def rewrite(self, user_input):
         rewrite_prompt = user_query_write.format(user_input=user_input)
-        response = self.client.invoke([SystemMessage(content=system_query_rewrite), HumanMessage(content=rewrite_prompt)])
+        response = await self.client.ainvoke([
+            SystemMessage(content=system_query_rewrite),
+            HumanMessage(content=rewrite_prompt),
+        ])
         cleaned_response = response.content.replace("```json", "")
         cleaned_response = cleaned_response.replace("```", "").strip()
 
         try:
             result = json.loads(cleaned_response)
-            return result
+            if isinstance(result, dict):
+                return result.get("variations", [])
+            return result if isinstance(result, list) else []
         except Exception as e:
             logger.info(f"json loads error: {e}")
             return [user_input]

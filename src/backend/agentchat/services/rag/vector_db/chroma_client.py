@@ -87,10 +87,11 @@ class ChromaClient:
 
             query_embedding = query_embeddings[0]
 
-            results = collection.query(
+            results = await asyncio.to_thread(
+                collection.query,
                 query_embeddings=[query_embedding],
                 n_results=min(top_k, 100),  # 限制最大返回数量
-                include=["metadatas", "documents", "distances"]
+                include=["metadatas", "documents", "distances"],
             )
 
             if not results['ids'] or len(results['ids']) == 0 or len(results['ids'][0]) == 0:
@@ -136,11 +137,12 @@ class ChromaClient:
 
             query_embedding = query_embeddings[0]
 
-            results = collection.query(
+            results = await asyncio.to_thread(
+                collection.query,
                 query_embeddings=[query_embedding],
                 n_results=min(top_k * 2, 100),  # 查询更多结果以便过滤
                 include=["metadatas", "documents", "distances"],
-                where={"is_summary": True}
+                where={"is_summary": True},
             )
 
             if not results['ids'] or len(results['ids']) == 0 or len(results['ids'][0]) == 0:

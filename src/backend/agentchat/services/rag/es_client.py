@@ -1,4 +1,5 @@
 import json
+import asyncio
 from typing import List
 from elasticsearch import Elasticsearch
 
@@ -40,16 +41,20 @@ class ESClient:
     async def index_documents(self, index_name, chunks):
         await self.insert_documents(index_name, chunks)
 
-    async def search_documents(self, query, index_name):
+    async def search_documents(self, query, index_name, top_k=10):
         index_search = json.loads(ESIndex.index_search_content.format(query=query))
 
         documents = []
         try:
-            response = self.client.search(index=index_name, body=index_search)
+            response = await asyncio.to_thread(
+                self.client.search,
+                index=index_name,
+                body=index_search,
+            )
             hits = response['hits']
             if not hits.get("max_score"):
                 return documents
-            for hit in response['hits']:
+            for hit in hits.get('hits', [])[:top_k]:
                 documents.append(SearchModel(score=hit['_score'], chunk_id=hit['_source']['chunk_id'],
                                              update_time=hit['_source']['update_time'],
                                              content=hit['_source']['content'], file_name=hit['_source']['file_name'],
@@ -60,16 +65,20 @@ class ESClient:
             logger.error(f'Search documents error: {e}')
         finally:
             await self.close()
-            return documents
+        return documents
 
-    async def search_documents_summary(self, query, index_name):
+    async def search_documents_summary(self, query, index_name, top_k=10):
         index_search = json.loads(ESIndex.index_search_summary.format(query=query))
 
         documents = []
         try:
-            response = self.client.search(index=index_name, body=index_search)
+            response = await asyncio.to_thread(
+                self.client.search,
+                index=index_name,
+                body=index_search,
+            )
 
-            for hit in response['hits']:
+            for hit in response.get('hits', {}).get('hits', [])[:top_k]:
                 documents.append(SearchModel(score=hit['_score'], chunk_id=hit['_source']['chunk_id'],
                                              update_time=hit['_source']['update_time'],
                                              content=hit['_source']['content'], file_name=hit['_source']['file_name'],
@@ -81,7 +90,7 @@ class ESClient:
             logger.error(f'Search documents summary error: {e}')
         finally:
             await self.close()
-            return documents
+        return documents
 
     async def delete_documents(self, file_id, index_name):
         try:

@@ -91,6 +91,12 @@ rag:
   retrival:
     top_k: 5  # 知识库召回的最大数量
     min_score: 0.2 # 知识库召回结果的最小相似度分数阈值
+    rewrite_max_queries: 3 # 最多保留的查询改写数量（原始问题始终额外保留）
+    retrieval_concurrency: 8 # 多查询、多知识库和多来源召回的最大并发数
+    retrieval_timeout_seconds: 10 # 单个向量或 ES 召回任务的超时时间
+    rrf_k: 60 # Reciprocal Rank Fusion 平滑参数
+    candidate_k: 20 # 进入 Rerank 前至少保留的候选数量
+    rerank_timeout_seconds: 10 # Rerank 超时后回退到 RRF 排序
 
   split:
     chunk_size: 500 # 知识库文档分块的最大字符数
