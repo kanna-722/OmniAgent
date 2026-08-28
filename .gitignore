@@ -10,6 +10,7 @@ chat.html
 md/
 
 chroma_db/
+src/backend/vector_db/
 memory_db/
 
 node_modules/
