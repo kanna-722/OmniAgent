@@ -40,6 +40,7 @@ class StreamAgentState(AgentState):
 MAX_TOOLS_SIZE = 10
 
 class AgentConfig(BaseModel):
+    agent_id: str = ""
     user_id: str
     llm_id: str
     mcp_ids: List[str]

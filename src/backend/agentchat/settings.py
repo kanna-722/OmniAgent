@@ -2,13 +2,19 @@ import yaml
 from typing import Literal, Optional
 from loguru import logger
 from types import SimpleNamespace
-from pydantic.v1 import BaseModel, BaseSettings, Field, conint
+from pydantic.v1 import BaseModel, BaseSettings, Field, confloat, conint
 
 from agentchat.schema.common import MultiModels, ModelConfig, Tools, Rag, StorageConfig
 
 
 class AgentExecutionConfig(BaseModel):
     recursion_limit: conint(strict=True, gt=0) = 25
+
+
+class MemoryConfig(BaseModel):
+    recent_history_count: conint(strict=True, gt=0) = 6
+    semantic_memory_limit: conint(strict=True, gt=0) = 5
+    memory_min_score: confloat(ge=0, le=1) = 0.2
 
 
 class Settings(BaseSettings):
@@ -19,6 +25,7 @@ class Settings(BaseSettings):
     whitelist_paths: list = []
     wechat_config: dict = {}
     default_config: dict = {}
+    memory: MemoryConfig = Field(default_factory=MemoryConfig)
 
     rag: Optional[Rag] = None
     tools: Optional[Tools] = None
@@ -55,6 +62,9 @@ async def initialize_app_settings(file_path: str = None):
 
             if "agent_execution" in data:
                 data["agent_execution"] = AgentExecutionConfig(**data["agent_execution"])
+
+            if "memory" in data:
+                data["memory"] = MemoryConfig(**data["memory"])
 
             for key, value in data.items():
                 setattr(app_settings, key, value)

@@ -112,6 +112,12 @@ rag:
     port: "19530"
     mode: "chroma" # 向量库模式: standalone (Milvus), lite (轻量Milvus), chroma (ChromaDB)
 
+# 长期记忆与近期对话混合上下文配置
+memory:
+  recent_history_count: 6
+  semantic_memory_limit: 5
+  memory_min_score: 0.2
+
 # 阿对象存储 OSS 配置
 storage:
   mode: "minio" # or oss

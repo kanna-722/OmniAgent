@@ -84,9 +84,18 @@ class ChromaDB(VectorStoreBase):
 
         result = []
         for i in range(max_length):
+            distance = (
+                distances[i]
+                if isinstance(distances, list) and distances and i < len(distances)
+                else None
+            )
+            similarity = None
+            if distance is not None:
+                # Chroma 返回距离（越小越相关）；Memory 对外统一成 0~1 的相似度（越大越相关）。
+                similarity = 1.0 / (1.0 + max(float(distance), 0.0))
             entry = OutputData(
                 id=ids[i] if isinstance(ids, list) and ids and i < len(ids) else None,
-                score=(distances[i] if isinstance(distances, list) and distances and i < len(distances) else None),
+                score=similarity,
                 payload=(metadatas[i] if isinstance(metadatas, list) and metadatas and i < len(metadatas) else None),
             )
             result.append(entry)
