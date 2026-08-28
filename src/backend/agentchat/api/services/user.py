@@ -91,8 +91,7 @@ class UserService:
         files_url = storage_client.list_files_in_folder("icons/user")
         if not files_url:
             return ""
-        file_url = random.choice(files_url)
-        return storage_client.sign_url_for_get(file_url)
+        return random.choice(files_url)
 
     @classmethod
     def get_available_avatars(cls):
