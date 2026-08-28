@@ -3,11 +3,12 @@ import asyncio
 from loguru import logger
 from typing import List, Dict, Any
 from pydantic import BaseModel
+from langgraph.runtime import Runtime
 from langgraph.types import Command
 from langgraph.prebuilt.tool_node import ToolCallRequest
 from langchain.agents import AgentState, create_agent
-from langchain.agents.middleware import wrap_tool_call
-from langchain_core.messages import BaseMessage, AIMessage, ToolMessage, AIMessageChunk
+from langchain.agents.middleware import AgentMiddleware, wrap_tool_call
+from langchain_core.messages import BaseMessage, AIMessage, ToolMessage, AIMessageChunk, SystemMessage
 
 from agentchat.core.callbacks import usage_metadata_callback
 from agentchat.tools import WorkSpacePlugins
@@ -22,6 +23,42 @@ from agentchat.api.services.mcp_user_config import MCPUserConfigService
 from agentchat.api.services.usage_stats import UsageStatsService
 from agentchat.api.services.workspace_session import WorkSpaceSessionService
 from agentchat.database.models.workspace_session import WorkSpaceSessionCreate, WorkSpaceSessionContext
+from agentchat.utils.dsml import DSMLStreamSanitizer, recover_dsml_tool_calls
+
+
+NO_TOOLS_PROMPT = """
+
+⚠️ 当前会话没有启用任何工具。不得生成、模拟或输出 tool_calls、DSML、XML 等工具调用指令。
+如果用户请求天气、新闻等实时信息，请明确说明当前未启用工具，并请用户先在界面中选择“天气预报”或“联网搜索”工具。
+"""
+
+
+class RecoverDSMLToolCallsMiddleware(AgentMiddleware):
+    """Convert DeepSeek-compatible DSML text back to native tool calls."""
+
+    async def aafter_model(
+        self,
+        state: AgentState,
+        runtime: Runtime,
+    ) -> Dict[str, Any] | None:
+        last_message = state["messages"][-1]
+        if not isinstance(last_message, AIMessage) or last_message.tool_calls:
+            return None
+
+        cleaned_content, recovered_tool_calls = recover_dsml_tool_calls(
+            last_message.content
+        )
+        if not recovered_tool_calls:
+            return None
+
+        logger.warning(
+            "SimpleAgent recovered {} DSML tool call(s): {}",
+            len(recovered_tool_calls),
+            [tool_call["name"] for tool_call in recovered_tool_calls],
+        )
+        last_message.content = cleaned_content
+        last_message.tool_calls = recovered_tool_calls
+        return {"messages": [last_message]}
 
 
 class MCPConfig(BaseModel):
@@ -122,7 +159,7 @@ class WorkSpaceSimpleAgent:
 
             return tool_result
 
-        return [handler_call_mcp_tool]
+        return [RecoverDSMLToolCallsMiddleware(), handler_call_mcp_tool]
 
     async def setup_mcp_tools(self):
         """Initialize MCP tools - with error handling"""
@@ -210,8 +247,14 @@ class WorkSpaceSimpleAgent:
         if not self._initialized:
             await self.init_simple_agent()
         user_messages = copy.deepcopy(messages)
+        if not self.tools:
+            for message in user_messages:
+                if isinstance(message, SystemMessage):
+                    message.content += NO_TOOLS_PROMPT
+                    break
 
         generate_title_task = asyncio.create_task(self._generate_title(user_messages[-1].content))
+        tool_messages: List[BaseMessage] = []
         try:
             react_agent_task = None
             if self.tools and len(self.tools) != 0:
@@ -220,23 +263,27 @@ class WorkSpaceSimpleAgent:
             # Wait for tool execution to complete
             if react_agent_task:
                 results = await react_agent_task
-                messages = results["messages"][:-1]  # Remove messages that didn't hit tools
+                result_messages = results["messages"][:-1]  # Remove messages that didn't hit tools
 
-                messages = [msg for msg in messages if
-                            isinstance(msg, ToolMessage) or (isinstance(msg, AIMessage) and msg.tool_calls)]
+                tool_messages = [msg for msg in result_messages if
+                                 isinstance(msg, ToolMessage) or (isinstance(msg, AIMessage) and msg.tool_calls)]
         except Exception as err:
             raise ValueError from err
-        messages = user_messages + messages
+        messages = user_messages + tool_messages
 
         final_answer = ""
+        stream_sanitizer = DSMLStreamSanitizer()
         async for chunk in self.model.astream(input=messages, config={"callbacks": [usage_metadata_callback]}):
+            visible_content = stream_sanitizer.feed(chunk.content)
+            if not visible_content:
+                continue
             yield {
                 "event": "task_result",
                 "data":{
-                    "message": chunk.content
+                    "message": visible_content
                 }
             }
-            final_answer += chunk.content
+            final_answer += visible_content
 
         await generate_title_task
         title = generate_title_task.result() if generate_title_task.done() else None

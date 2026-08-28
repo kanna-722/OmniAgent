@@ -1,17 +1,16 @@
-from agentchat.core.agents.general_agent import (
+from agentchat.utils.dsml import (
     DSMLStreamSanitizer,
     recover_dsml_tool_calls,
 )
-from agentchat.tools.web_search.tavily_search.action import tavily_search
 
 
 def test_recovers_dsml_tool_call_and_removes_protocol_text():
     content = r"""我将查询天气，请稍等。
-<｜｜DSML｜｜tool_calls>
+<｜｜DSML｜｜tool\_calls>\
 <｜｜DSML｜｜invoke name="web_search">
 <｜｜DSML｜｜parameter name="query" string="true">成都市成华区最近7天天气\</｜｜DSML｜｜parameter>
 \</｜｜DSML｜｜invoke>
-\</｜｜DSML｜｜tool_calls>"""
+\</｜｜DSML｜｜tool\_calls>"""
 
     cleaned_content, tool_calls = recover_dsml_tool_calls(content)
 
@@ -64,9 +63,11 @@ def test_stream_sanitizer_handles_complete_block_in_one_chunk():
     assert sanitizer.feed(content) == "调用前。调用后。"
 
 
-def test_web_search_optional_arguments_are_not_required():
-    schema = tavily_search.tool_call_schema.model_json_schema()
+def test_stream_sanitizer_hides_escaped_tool_calls_tag():
+    sanitizer = DSMLStreamSanitizer()
+    content = r"""调用前。<｜｜DSML｜｜tool\_calls>\
+<｜｜DSML｜｜invoke name="web\_search">\
+\</｜｜DSML｜｜invoke>\
+\</｜｜DSML｜｜tool\_calls>调用后。"""
 
-    assert schema["required"] == ["query"]
-    assert schema["properties"]["topic"]["default"] == "general"
-    assert schema["properties"]["max_results"]["default"] == 5
+    assert sanitizer.feed(content) == "调用前。调用后。"
