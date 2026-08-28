@@ -9,9 +9,9 @@ tavily_client = TavilyClient(app_settings.tools.tavily.get("api_key"))
 
 @tool("web_search", parse_docstring=True)
 def tavily_search(query: str,
-                  topic: Optional[str],
-                  max_results: Optional[int],
-                  time_range: Optional[Literal["day", "week", "month", "year"]]):
+                  topic: Optional[str] = "general",
+                  max_results: Optional[int] = 5,
+                  time_range: Optional[Literal["day", "week", "month", "year"]] = None):
     """
     根据用户的问题以及查询参数进行联网搜索
 
