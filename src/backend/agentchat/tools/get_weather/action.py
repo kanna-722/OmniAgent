@@ -29,10 +29,28 @@ def _get_weather(location: str):
 
     try:
         res = requests.get(url=app_settings.tools.weather.get('endpoint'), params=params, timeout=5)  # 预报天气
+        res.raise_for_status()
         result = res.json()
-        city = result.get('forecasts')[0].get("city")  # 获取城市
+
+        if not isinstance(result, dict):
+            raise ValueError("天气服务返回了无法识别的数据格式")
+
+        if str(result.get("status")) != "1":
+            info = result.get("info") or "未知错误"
+            infocode = result.get("infocode") or "unknown"
+            raise ValueError(f"天气服务请求失败：{info}（错误码：{infocode}）")
+
+        forecasts = result.get("forecasts") or []
+        if not forecasts or not isinstance(forecasts[0], dict):
+            raise ValueError(f"天气服务没有返回“{location}”的预报数据，请尝试使用城市名或行政区编码")
+
+        forecast = forecasts[0]
+        city = forecast.get("city") or location  # 获取城市
         message_result = []
-        data = result.get('forecasts')[0].get("casts")
+        data = forecast.get("casts") or []
+
+        if not data:
+            raise ValueError(f"天气服务没有返回“{city}”的逐日预报数据")
 
         for item in data:
             date = item.get('date')  # 获取日期
@@ -47,7 +65,8 @@ def _get_weather(location: str):
         final_result = WEATHER_PROMPT.format(city, message_result[0], message_result[1:])
         return final_result
     except Exception as err:
-        logger.error(f'Call Weather Tool Err: {err}')
-        return str(err)
+        error_message = f"查询“{location}”天气失败：{err}"
+        logger.error(f'Call Weather Tool Err: {error_message}')
+        return error_message
 
 

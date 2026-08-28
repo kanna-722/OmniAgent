@@ -58,7 +58,7 @@ class RecoverDSMLToolCallsMiddleware(AgentMiddleware):
         )
         last_message.content = cleaned_content
         last_message.tool_calls = recovered_tool_calls
-        return {"messages": [last_message]}
+        return None
 
 
 class MCPConfig(BaseModel):
@@ -148,16 +148,25 @@ class WorkSpaceSimpleAgent:
             request: ToolCallRequest,
             handler
         ) -> ToolMessage | Command:
-            if self.is_mcp_tool(request.tool_call["name"]):
-                # 针对鉴权的MCP Server需要用户的单独配置，例如飞书、邮箱
-                mcp_config = await MCPUserConfigService.get_mcp_user_config(self.user_id, self.get_mcp_id_by_tool(request.tool_call["name"]))
-                request.tool_call["args"].update(mcp_config)
-                tool_result = await handler(request)
-                print(tool_result)
-            else:
-                tool_result = await handler(request)
+            tool_name = request.tool_call["name"]
+            try:
+                if self.is_mcp_tool(tool_name):
+                    # 针对鉴权的MCP Server需要用户的单独配置，例如飞书、邮箱
+                    mcp_config = await MCPUserConfigService.get_mcp_user_config(
+                        self.user_id,
+                        self.get_mcp_id_by_tool(tool_name),
+                    )
+                    request.tool_call["args"].update(mcp_config or {})
 
-            return tool_result
+                return await handler(request)
+            except Exception as err:
+                logger.exception("SimpleAgent tool '{}' failed", tool_name)
+                return ToolMessage(
+                    content=f"工具 {tool_name} 调用失败：{err}",
+                    name=tool_name,
+                    tool_call_id=request.tool_call["id"],
+                    status="error",
+                )
 
         return [RecoverDSMLToolCallsMiddleware(), handler_call_mcp_tool]
 
@@ -268,7 +277,10 @@ class WorkSpaceSimpleAgent:
                 tool_messages = [msg for msg in result_messages if
                                  isinstance(msg, ToolMessage) or (isinstance(msg, AIMessage) and msg.tool_calls)]
         except Exception as err:
-            raise ValueError from err
+            logger.exception("SimpleAgent ReAct execution failed")
+            tool_messages = [
+                SystemMessage(content=f"工具执行流程失败：{err}")
+            ]
         messages = user_messages + tool_messages
 
         final_answer = ""
