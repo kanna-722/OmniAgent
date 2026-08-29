@@ -12,5 +12,6 @@ md/
 chroma_db/
 src/backend/vector_db/
 memory_db/
+src/backend/agentchat/config.yaml
 
 node_modules/
