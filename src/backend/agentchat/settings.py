@@ -15,6 +15,7 @@ class MemoryConfig(BaseModel):
     recent_history_count: conint(strict=True, gt=0) = 6
     semantic_memory_limit: conint(strict=True, gt=0) = 5
     memory_min_score: confloat(ge=0, le=1) = 0.2
+    context_token_budget: conint(strict=True, gt=0) = 2000
 
 
 class Settings(BaseSettings):

@@ -2,10 +2,20 @@ import asyncio
 import logging
 import math
 import re
+from dataclasses import dataclass
 from typing import Any, Iterable, Sequence
 
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass(frozen=True)
+class MemoryContextResult:
+    context: str
+    memories: list[dict]
+    token_count: int
+    token_count_mode: str
+    budget_exceeded_by_recent_history: bool
 
 
 def normalize_memory_text(value: Any) -> str:
@@ -203,6 +213,62 @@ def format_memory_context(
 def estimate_context_tokens(context: str) -> int:
     """无额外 tokenizer 依赖的保守上下文估算，仅用于日志和对比测试。"""
     return math.ceil(len(context) / 4)
+
+
+def _count_context_tokens(context: str, token_counter=None) -> tuple[int, str]:
+    if token_counter is not None:
+        try:
+            count = int(token_counter(context))
+            if count >= 0:
+                return count, "model_tokenizer"
+        except Exception as exc:
+            logger.warning("Model tokenizer failed, using character estimate: %s", exc)
+    return estimate_context_tokens(context), "character_estimate"
+
+
+def build_budgeted_memory_context(
+    recent_messages: Sequence[Any],
+    long_term_memories: Sequence[dict],
+    *,
+    token_budget: int,
+    token_counter=None,
+) -> MemoryContextResult:
+    """优先保留近期历史，在 Token 预算内按排序结果逐条加入长期记忆。"""
+    selected_memories = []
+    base_context = format_memory_context(recent_messages, selected_memories)
+    base_tokens, count_mode = _count_context_tokens(base_context, token_counter)
+
+    if base_tokens > token_budget:
+        return MemoryContextResult(
+            context=base_context,
+            memories=selected_memories,
+            token_count=base_tokens,
+            token_count_mode=count_mode,
+            budget_exceeded_by_recent_history=True,
+        )
+
+    current_context = base_context
+    current_tokens = base_tokens
+    for memory in long_term_memories:
+        candidate_memories = [*selected_memories, memory]
+        candidate_context = format_memory_context(recent_messages, candidate_memories)
+        candidate_tokens, candidate_mode = _count_context_tokens(
+            candidate_context,
+            token_counter,
+        )
+        if candidate_tokens <= token_budget:
+            selected_memories = candidate_memories
+            current_context = candidate_context
+            current_tokens = candidate_tokens
+            count_mode = candidate_mode
+
+    return MemoryContextResult(
+        context=current_context,
+        memories=selected_memories,
+        token_count=current_tokens,
+        token_count_mode=count_mode,
+        budget_exceeded_by_recent_history=False,
+    )
 
 
 def build_memory_write_kwargs(

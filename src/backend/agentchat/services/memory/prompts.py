@@ -31,6 +31,12 @@ Output: {{"facts" : []}}
 Input: There are branches in trees.
 Output: {{"facts" : []}}
 
+Input: 你好，今天天气怎么样？
+Output: {{"facts" : []}}
+
+Input: Python 的 GIL 是什么？
+Output: {{"facts" : []}}
+
 Input: Hi, I am looking for a restaurant in San Francisco.
 Output: {{"facts" : []}}
 
@@ -101,13 +107,14 @@ There are specific guidelines to select which operation to perform:
 
         }
 
-2. **Update**: If the retrieved facts contain information that is already present in the memory but the information is totally different, then you have to update it. 
+2. **Update**: If the retrieved facts contain newer information about the same user attribute or preference, update the existing memory to the latest fact, including positive-to-negative and negative-to-positive changes.
 If the retrieved fact contains information that conveys the same thing as the elements present in the memory, then you have to keep the fact which has the most information. 
 Example (a) -- if the memory contains "User likes to play cricket" and the retrieved fact is "Loves to play cricket with friends", then update the memory with the retrieved facts.
 Example (b) -- if the memory contains "Likes cheese pizza" and the retrieved fact is "Loves cheese pizza", then you do not need to update it because they convey the same information.
 If the direction is to update the memory, then you have to update it.
 Please keep in mind while updating you have to keep the same ID.
 Please note to return the IDs in the output from the input IDs only and do not generate any new ID.
+- Preference correction example: old memory "喜欢喝咖啡" plus new fact "现在不喝咖啡" must UPDATE the same ID to "现在不喝咖啡". Do not keep both facts and do not discard the new negative preference.
 - **Example**:
     - Old Memory:
         [
@@ -149,7 +156,7 @@ Please note to return the IDs in the output from the input IDs only and do not g
         }
 
 
-3. **Delete**: If the retrieved facts contain information that contradicts the information present in the memory, then you have to delete it. Or if the direction is to delete the memory, then you have to delete it.
+3. **Delete**: Delete an existing memory only when the user explicitly asks to forget/remove that fact, or explicitly says the old fact is invalid without providing a replacement fact. When a newer replacement fact exists, use UPDATE instead of DELETE.
 Please note to return the IDs in the output from the input IDs only and do not generate any new ID.
 - **Example**:
     - Old Memory:

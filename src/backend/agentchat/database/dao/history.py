@@ -19,13 +19,17 @@ class HistoryDao:
 
     @classmethod
     async def select_history_from_time(cls, dialog_id: str, k: int):
+        if k <= 0:
+            return []
         with session_getter() as session:
-            sql = select(HistoryTable).where(HistoryTable.dialog_id == dialog_id).order_by(HistoryTable.create_time.desc())
+            sql = (
+                select(HistoryTable)
+                .where(HistoryTable.dialog_id == dialog_id)
+                .order_by(HistoryTable.create_time.desc())
+                .limit(k)
+            )
             result = session.exec(sql).all()
 
-            # 每次最多取当前会话的k条历史记录
-            if len(result) > k:
-                result = result[:k]
             # 保持消息的时间顺序（从旧到新）
             result.reverse()
 

@@ -2,6 +2,7 @@ import unittest
 from dataclasses import dataclass
 
 from agentchat.services.memory.context import (
+    build_budgeted_memory_context,
     build_memory_write_kwargs,
     estimate_context_tokens,
     format_memory_context,
@@ -180,5 +181,69 @@ class MemoryContextTests(unittest.IsolatedAsyncioTestCase):
         self.assertEqual(kwargs["agent_id"], "agent-1")
         self.assertNotIn("run_id", kwargs)
         self.assertEqual(kwargs["metadata"], {"dialog_id": "dialog-1", "run_id": "dialog-1"})
+
+    def test_token_budget_keeps_recent_history_and_trims_long_term_memory(self):
+        messages = [FakeMessage("human", "最近消息")]
+        memories = [
+            {"memory": "A" * 20, "score": 0.9},
+            {"memory": "B" * 20, "score": 0.8},
+            {"memory": "C" * 20, "score": 0.7},
+        ]
+
+        result = build_budgeted_memory_context(
+            messages,
+            memories,
+            token_budget=170,
+            token_counter=len,
+        )
+
+        self.assertIn("最近消息", result.context)
+        self.assertLess(len(result.memories), len(memories))
+        self.assertEqual(result.token_count, len(result.context))
+        self.assertEqual(result.token_count_mode, "model_tokenizer")
+        self.assertLessEqual(result.token_count, 170)
+
+    def test_oversized_memory_does_not_block_later_smaller_memory(self):
+        memories = [
+            {"memory": "X" * 1000, "score": 0.9},
+            {"memory": "短记忆", "score": 0.8},
+        ]
+
+        result = build_budgeted_memory_context(
+            [],
+            memories,
+            token_budget=170,
+            token_counter=len,
+        )
+
+        self.assertEqual(result.memories, [{"memory": "短记忆", "score": 0.8}])
+
+    def test_recent_history_is_never_trimmed_when_it_exceeds_budget(self):
+        messages = [FakeMessage("human", "必须保留" * 100)]
+
+        result = build_budgeted_memory_context(
+            messages,
+            [{"memory": "长期记忆", "score": 0.9}],
+            token_budget=100,
+            token_counter=len,
+        )
+
+        self.assertIn("必须保留", result.context)
+        self.assertEqual(result.memories, [])
+        self.assertTrue(result.budget_exceeded_by_recent_history)
+
+    def test_tokenizer_failure_falls_back_to_character_estimate(self):
+        def broken_counter(_text):
+            raise RuntimeError("tokenizer unavailable")
+
+        result = build_budgeted_memory_context(
+            [],
+            [],
+            token_budget=2000,
+            token_counter=broken_counter,
+        )
+
+        self.assertEqual(result.token_count_mode, "character_estimate")
+        self.assertEqual(result.token_count, estimate_context_tokens(result.context))
 if __name__ == "__main__":
     unittest.main()

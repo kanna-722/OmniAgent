@@ -16,9 +16,8 @@ from agentchat.services.memory.client import memory_client
 from agentchat.utils.contexts import set_user_id_context, set_agent_name_context
 from agentchat.utils.helpers import build_completion_system_prompt, build_completion_user_input
 from agentchat.services.memory.context import (
+    build_budgeted_memory_context,
     build_memory_write_kwargs,
-    estimate_context_tokens,
-    format_memory_context,
     retrieve_mixed_memories,
 )
 from agentchat.settings import app_settings
@@ -104,6 +103,7 @@ async def completion(
     recent_history_count = app_settings.memory.recent_history_count
     semantic_memory_limit = app_settings.memory.semantic_memory_limit
     memory_min_score = app_settings.memory.memory_min_score
+    context_token_budget = app_settings.memory.context_token_budget
 
     # 无论是否开启长期记忆，都保留最近的数据库历史
     recent_messages = await HistoryService.select_history(
@@ -127,12 +127,23 @@ async def completion(
             "Long-term memory disabled for this request: agent_id is missing"
         )
 
-    memory_context = format_memory_context(recent_messages, long_term_memories)
+    context_result = build_budgeted_memory_context(
+        recent_messages,
+        long_term_memories,
+        token_budget=context_token_budget,
+        token_counter=chat_agent.conversation_model.get_num_tokens,
+    )
+    memory_context = context_result.context
     loguru.logger.info(
-        "Completion context: recent_messages={}, semantic_memories={}, estimated_tokens={}",
+        "Completion context: recent_messages={}, semantic_memories={}/{}, "
+        "tokens={}, token_count_mode={}, budget={}, recent_history_over_budget={}",
         len(recent_messages),
+        len(context_result.memories),
         len(long_term_memories),
-        estimate_context_tokens(memory_context),
+        context_result.token_count,
+        context_result.token_count_mode,
+        context_token_budget,
+        context_result.budget_exceeded_by_recent_history,
     )
     system_prompt = build_completion_system_prompt(system_prompt, memory_context)
 
