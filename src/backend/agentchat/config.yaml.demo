@@ -23,41 +23,41 @@ redis:
 multi_models:
   # 对话模型配置
   conversation_model:
-    api_key: "sk-c18819c717bb4a73******"
-    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    api_key: "${DEEPSEEK_API_KEY}"
+    base_url: "https://api.deepseek.com"
     model_name: "deepseek-4-flash"
   # 工具调用/Function Call 模型配置
   tool_call_model:
-    api_key: "sk-c18819c717bb4a73******"
-    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    api_key: "${DEEPSEEK_API_KEY}"
+    base_url: "https://api.deepseek.com"
     model_name: "deepseek-4-flash"
   # 复杂推理模型配置
   reasoning_model:
-    api_key: "sk-c18819c717bb4a73******"
-    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
+    api_key: "${DEEPSEEK_API_KEY}"
+    base_url: "https://api.deepseek.com"
     model_name: "deepseek-4-pro"
   # 文生图模型配置
   text2image:
-    api_key: "sk-fc40dd0604f04142a******"
+    api_key: "${SILICONFLOW_API_KEY}"
     base_url: "https://api.siliconflow.cn/v1/images/generations"
     model_name: "Tongyi-MAI/Z-Image-Turbo"
     parameters:
       image_size: "1024x1024"
   # 多模态 (视觉) 模型配置
   qwen_vl:
-    api_key: "sk-fc40dd0604f04142a******"
+    api_key: "${SILICONFLOW_API_KEY}"
     base_url: "https://api.siliconflow.cn/v1"
     model_name: "Qwen/Qwen3.5-397B-A17B"
 
   # Embedding 模型配置 (用于向量化)
   embedding:
-    api_key: "sk-c18819c717bb4a73******"
+    api_key: "${SILICONFLOW_API_KEY}"
     base_url: "https://api.siliconflow.cn/v1"
     model_name: "Qwen/Qwen3-VL-Embedding-8B"
 
   # Rerank 模型配置 (用于重排序召回结果)
   rerank:
-    api_key: "sk-c18819c717bb4a73******"
+    api_key: "${SILICONFLOW_API_KEY}"
     base_url: "https://api.siliconflow.cn/v1/rerank"
     model_name: "Qwen/Qwen3-VL-Reranker-8B"
 
@@ -66,21 +66,21 @@ multi_models:
 tools:
   # 高德地图天气 API 配置
   weather:
-    api_key: "235e34604c44c6b70d7******"
+    api_key: "${WEATHER_API_KEY}"
     endpoint: "https://restapi.amap.com/v3/weather/weatherInfo?parameters"
   # Tavily 联网搜索 API 配置 (注意配额限制)
   tavily:
-    api_key: "tvly-dev-RMf7KBCQLyXhn3******"
+    api_key: "${TAVILY_API_KEY}"
   # SerpApi 上的 Google Search API 配置
   google:
-    api_key: "cdc3b207606843b4c883849c3a0f833c13057811b*********"
+    api_key: "${GOOGLE_API_KEY}"
   # 使用的是aliyun上的快递查询api
   delivery:
-    api_key: "df695c94fc644d******"
+    api_key: "${DELIVER_API_KEY}"
     endpoint: "https://qyexpress.market.alicloudapi.com/composite/queryexpress"
   # BoCha 联网搜索 API 配置
   bocha:
-    api_key: "sk-**********************"
+    api_key: "${BOCHA_API_KEY}"
     endpoint: "https://api.bochaai.com/v1/web-search"
 
 
