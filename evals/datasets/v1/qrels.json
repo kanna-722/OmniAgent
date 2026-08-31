@@ -1,0 +1,182 @@
+{
+  "rag-adversarial-01": {
+    "policy-01-chunk-05": 3
+  },
+  "rag-adversarial-02": {
+    "policy-02-chunk-05": 3
+  },
+  "rag-adversarial-03": {
+    "policy-03-chunk-05": 3
+  },
+  "rag-adversarial-04": {
+    "policy-04-chunk-05": 3
+  },
+  "rag-adversarial-05": {
+    "policy-05-chunk-05": 3
+  },
+  "rag-adversarial-06": {
+    "policy-06-chunk-05": 3
+  },
+  "rag-adversarial-07": {
+    "policy-07-chunk-05": 3
+  },
+  "rag-adversarial-08": {
+    "policy-08-chunk-05": 3
+  },
+  "rag-adversarial-09": {
+    "policy-09-chunk-05": 3
+  },
+  "rag-boundary-01": {
+    "policy-01-chunk-03": 3
+  },
+  "rag-boundary-02": {},
+  "rag-boundary-03": {
+    "policy-03-chunk-03": 3
+  },
+  "rag-boundary-04": {
+    "policy-04-chunk-03": 3
+  },
+  "rag-boundary-05": {
+    "policy-05-chunk-03": 3
+  },
+  "rag-boundary-06": {},
+  "rag-boundary-07": {
+    "policy-07-chunk-03": 3
+  },
+  "rag-boundary-08": {
+    "policy-08-chunk-03": 3
+  },
+  "rag-boundary-09": {
+    "policy-09-chunk-03": 3
+  },
+  "rag-boundary-10": {},
+  "rag-boundary-11": {
+    "policy-11-chunk-03": 3
+  },
+  "rag-boundary-12": {
+    "policy-12-chunk-03": 3
+  },
+  "rag-failure-01": {
+    "policy-01-chunk-01": 3
+  },
+  "rag-failure-02": {
+    "policy-02-chunk-01": 3
+  },
+  "rag-failure-03": {
+    "policy-03-chunk-01": 3
+  },
+  "rag-failure-04": {
+    "policy-04-chunk-01": 3
+  },
+  "rag-failure-05": {
+    "policy-05-chunk-01": 3
+  },
+  "rag-failure-06": {
+    "policy-06-chunk-01": 3
+  },
+  "rag-failure-07": {
+    "policy-07-chunk-01": 3
+  },
+  "rag-failure-08": {
+    "policy-08-chunk-01": 3
+  },
+  "rag-failure-09": {
+    "policy-09-chunk-01": 3
+  },
+  "rag-gold-01": {
+    "policy-01-chunk-01": 3
+  },
+  "rag-gold-02": {
+    "policy-01-chunk-02": 3
+  },
+  "rag-gold-03": {
+    "policy-02-chunk-01": 3
+  },
+  "rag-gold-04": {
+    "policy-02-chunk-02": 3
+  },
+  "rag-gold-05": {
+    "policy-03-chunk-01": 3
+  },
+  "rag-gold-06": {
+    "policy-03-chunk-02": 3
+  },
+  "rag-gold-07": {
+    "policy-04-chunk-01": 3
+  },
+  "rag-gold-08": {
+    "policy-04-chunk-02": 3
+  },
+  "rag-gold-09": {
+    "policy-05-chunk-01": 3
+  },
+  "rag-gold-10": {
+    "policy-05-chunk-02": 3
+  },
+  "rag-gold-11": {
+    "policy-06-chunk-01": 3
+  },
+  "rag-gold-12": {
+    "policy-06-chunk-02": 3
+  },
+  "rag-gold-13": {
+    "policy-07-chunk-01": 3
+  },
+  "rag-gold-14": {
+    "policy-07-chunk-02": 3
+  },
+  "rag-gold-15": {
+    "policy-08-chunk-01": 3
+  },
+  "rag-gold-16": {
+    "policy-08-chunk-02": 3
+  },
+  "rag-gold-17": {
+    "policy-09-chunk-01": 3
+  },
+  "rag-gold-18": {
+    "policy-09-chunk-02": 3
+  },
+  "rag-gold-19": {
+    "policy-10-chunk-01": 3
+  },
+  "rag-gold-20": {
+    "policy-10-chunk-02": 3
+  },
+  "rag-gold-21": {
+    "policy-11-chunk-01": 3
+  },
+  "rag-gold-22": {
+    "policy-11-chunk-02": 3
+  },
+  "rag-gold-23": {
+    "policy-12-chunk-01": 3
+  },
+  "rag-gold-24": {
+    "policy-12-chunk-02": 3
+  },
+  "rag-gold-25": {
+    "policy-01-chunk-04": 3,
+    "policy-02-chunk-04": 2
+  },
+  "rag-gold-26": {
+    "policy-03-chunk-04": 3,
+    "policy-04-chunk-04": 2
+  },
+  "rag-gold-27": {
+    "policy-05-chunk-04": 3,
+    "policy-06-chunk-04": 2
+  },
+  "rag-gold-28": {
+    "policy-07-chunk-04": 3,
+    "policy-08-chunk-04": 2
+  },
+  "rag-gold-29": {
+    "policy-09-chunk-04": 3,
+    "policy-10-chunk-04": 2
+  },
+  "rag-gold-30": {
+    "policy-11-chunk-04": 3,
+    "policy-12-chunk-04": 2
+  }
+}

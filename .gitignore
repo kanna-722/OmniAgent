@@ -17,3 +17,7 @@ memory_db/
 src/backend/agentchat/config.yaml
 
 node_modules/
+
+# Local evaluation worktrees and generated reports
+.eval/
+evals/results/

@@ -1,0 +1,20 @@
+{
+  "dataset_version": "v1",
+  "task_units": {
+    "agent": "single ReAct execution convergence and controlled termination",
+    "rag": "enterprise policy chunk retrieval and ranking",
+    "memory": "user fact storage, recall, update, isolation and context assembly"
+  },
+  "counts": {"agent": 20, "rag": 60, "memory": 50},
+  "first_comparison": {
+    "baseline": "284305d",
+    "baseline_origin": "main@69c6ab6 plus API/.env compatibility only",
+    "candidate": "e3fc22b"
+  },
+  "production_replay": {"enabled": false, "reason": "No redacted production traffic is available for V1"},
+  "benchmark_mapping": {
+    "agent": "BFCL task taxonomy only; no public score claimed",
+    "rag": "BEIR/MIRACL retrieval metrics only; no public score claimed",
+    "memory": "LongMemEval capability mapping only; no public score claimed"
+  }
+}
