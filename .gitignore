@@ -7,6 +7,8 @@ __pycache__/
 chat.html
 
 .env
+.env.*
+!.env.example
 md/
 
 chroma_db/

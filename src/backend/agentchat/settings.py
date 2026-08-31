@@ -1,3 +1,7 @@
+import os
+import re
+from pathlib import Path
+
 import yaml
 from typing import Literal, Optional
 from loguru import logger
@@ -37,13 +41,83 @@ class Settings(BaseSettings):
 
 app_settings = Settings()
 
+ENV_VAR_PATTERN = re.compile(r"\$\{([A-Z][A-Z0-9_]*)\}")
+
+
+def _find_env_file(config_path: Path) -> Optional[Path]:
+    search_roots = [config_path.parent, Path.cwd().resolve()]
+    visited = set()
+    for search_root in search_roots:
+        for directory in (search_root, *search_root.parents):
+            if directory in visited:
+                continue
+            visited.add(directory)
+            env_path = directory / ".env"
+            if env_path.is_file():
+                return env_path
+    return None
+
+
+def _load_env_file(env_path: Path) -> None:
+    for line_number, raw_line in enumerate(
+        env_path.read_text(encoding="utf-8").splitlines(),
+        start=1,
+    ):
+        line = raw_line.strip()
+        if not line or line.startswith("#"):
+            continue
+        if line.startswith("export "):
+            line = line[7:].lstrip()
+        key, separator, value = line.partition("=")
+        key = key.strip()
+        if not separator or not key.isidentifier():
+            raise ValueError(f"Invalid .env entry at {env_path}:{line_number}")
+        value = value.strip()
+        if len(value) >= 2 and value[0] == value[-1] and value[0] in {'\"', "'"}:
+            value = value[1:-1]
+        os.environ.setdefault(key, value)
+
+
+def _expand_environment_variables(config_value):
+    missing_variables = set()
+
+    def expand(value):
+        if isinstance(value, dict):
+            return {key: expand(item) for key, item in value.items()}
+        if isinstance(value, list):
+            return [expand(item) for item in value]
+        if not isinstance(value, str):
+            return value
+
+        def replace(match):
+            variable_name = match.group(1)
+            environment_value = os.environ.get(variable_name)
+            if not environment_value:
+                missing_variables.add(variable_name)
+                return match.group(0)
+            return environment_value
+
+        return ENV_VAR_PATTERN.sub(replace, value)
+
+    expanded_value = expand(config_value)
+    if missing_variables:
+        missing = ", ".join(sorted(missing_variables))
+        raise ValueError(f"Missing required environment variables: {missing}")
+    return expanded_value
+
 async def initialize_app_settings(file_path: str = None):
     global app_settings
 
     file_path = file_path or "agentchat/config.yaml"
     try:
-        with open(file_path, 'r', encoding='utf-8') as f:
+        config_path = Path(file_path).resolve()
+        env_path = _find_env_file(config_path)
+        if env_path is not None:
+            _load_env_file(env_path)
+
+        with config_path.open('r', encoding='utf-8') as f:
             data = yaml.safe_load(f)
+            data = _expand_environment_variables(data)
             if data is None:
                 logger.error("YAML 文件解析为空")
                 return
