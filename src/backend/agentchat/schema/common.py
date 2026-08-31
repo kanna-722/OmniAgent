@@ -6,6 +6,7 @@ class ModelConfig(BaseModel):
     model_name: str = ""
     api_key: str = ""
     base_url: str = ""
+    parameters: dict = Field(default_factory=dict)
 
 class MultiModels(BaseModel):
     class Config:

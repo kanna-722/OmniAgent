@@ -1,5 +1,4 @@
 import asyncio
-import json
 
 import aiohttp
 from agentchat.settings import app_settings, initialize_app_settings
@@ -30,14 +29,10 @@ class Reranker:
         }
         payload = {
             "model": app_settings.multi_models.rerank.model_name,
-            "input": {
-                "query": query,
-                "documents": documents
-            },
-            "parameters": {
-                "return_documents": True,
-                "top_n": min(max(1, int(top_n)), len(documents))
-            }
+            "query": query,
+            "documents": documents,
+            "return_documents": True,
+            "top_n": min(max(1, int(top_n)), len(documents)),
         }
 
         timeout = aiohttp.ClientTimeout(total=float(timeout_seconds))
@@ -45,11 +40,11 @@ class Reranker:
             async with session.post(
                 url=app_settings.multi_models.rerank.base_url,
                 headers=headers,
-                data=json.dumps(payload),
+                json=payload,
             ) as response:
                 if response.status == 200:
                     result = await response.json()
-                    return result.get('output', {}).get('results', [])
+                    return result.get('results', [])
                 else:
                     response.raise_for_status()
 

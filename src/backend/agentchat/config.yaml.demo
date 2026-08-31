@@ -25,39 +25,41 @@ multi_models:
   conversation_model:
     api_key: "sk-c18819c717bb4a73******"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: "qwen3.5-flash"
+    model_name: "deepseek-4-flash"
   # 工具调用/Function Call 模型配置
   tool_call_model:
     api_key: "sk-c18819c717bb4a73******"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: "qwen3.5-flash"
+    model_name: "deepseek-4-flash"
   # 复杂推理模型配置
   reasoning_model:
     api_key: "sk-c18819c717bb4a73******"
     base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: "qwen3.5-flash"
+    model_name: "deepseek-4-pro"
   # 文生图模型配置
   text2image:
     api_key: "sk-fc40dd0604f04142a******"
-    base_url: "https://dashscope.aliyuncs.com/api/v1/services/aigc/text2image/image-synthesis"
-    model_name: "wanx2.0-t2i-turbo"
+    base_url: "https://api.siliconflow.cn/v1/images/generations"
+    model_name: "Tongyi-MAI/Z-Image-Turbo"
+    parameters:
+      image_size: "1024x1024"
   # 多模态 (视觉) 模型配置
   qwen_vl:
     api_key: "sk-fc40dd0604f04142a******"
-    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: "qwen-vl-plus"
+    base_url: "https://api.siliconflow.cn/v1"
+    model_name: "Qwen/Qwen3.5-397B-A17B"
 
   # Embedding 模型配置 (用于向量化)
   embedding:
     api_key: "sk-c18819c717bb4a73******"
-    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: "text-embedding-v3"
+    base_url: "https://api.siliconflow.cn/v1"
+    model_name: "Qwen/Qwen3-VL-Embedding-8B"
 
   # Rerank 模型配置 (用于重排序召回结果)
   rerank:
     api_key: "sk-c18819c717bb4a73******"
-    base_url: "https://dashscope.aliyuncs.com/compatible-mode/v1"
-    model_name: "qwen3-rerank"
+    base_url: "https://api.siliconflow.cn/v1/rerank"
+    model_name: "Qwen/Qwen3-VL-Reranker-8B"
 
 
 # 外部工具 (Tool) 配置
