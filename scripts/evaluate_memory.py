@@ -74,6 +74,7 @@ async def evaluate(
     from agentchat.database.models.history import HistoryTable
     from agentchat.services.memory.client import memory_client
     from agentchat.services.memory.context import build_budgeted_memory_context
+    from agentchat.services.memory.vector_stores.chroma import ChromaDB
     from agentchat.services.memory.prompts import (
         FACT_RETRIEVAL_PROMPT,
         get_update_memory_messages,
@@ -119,6 +120,13 @@ async def evaluate(
 
     if deterministic_embedding:
         memory_client.embedding_model = DeterministicEmbedding()
+
+    # Never reuse the application's default collection: different embedding models may
+    # have different dimensions, and evaluation data must not touch user memories.
+    evaluation_vector_store = ChromaDB(
+        collection_name=f"memory_eval_{run_tag}",
+    )
+    memory_client.vector_store = evaluation_vector_store
     metrics = {
         "run_tag": run_tag,
         "timestamp": datetime.now().isoformat(),
@@ -336,7 +344,10 @@ async def evaluate(
             "within_budget": budget_result.token_count <= app_settings.memory.context_token_budget,
         }
     finally:
-        await memory_client.delete_all(user_id=user_id, agent_id=agent_id)
+        try:
+            await memory_client.delete_all(user_id=user_id, agent_id=agent_id)
+        finally:
+            evaluation_vector_store.delete_col()
 
     metrics["acceptance"] = {
         "fact_extraction": metrics["fact_extraction"]["passed"] == metrics["fact_extraction"]["total"],
